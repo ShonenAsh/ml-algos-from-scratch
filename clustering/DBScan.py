@@ -16,19 +16,16 @@ class DBScan:
 
     def _find_neighbours(self) -> np.ndarray:
         dist = cdist(self.x_train, self.x_train, metric=self.metric)
-        np.fill_diagonal(dist, 1)
+        dist /= np.max(dist)
         dist[dist >= self.epsilon] = 0
-        dist[dist < self.epsilon] = 1
-        return np.asarray(dist, dtype=np.uint8)
+        np.fill_diagonal(dist, val=1)
+        return np.asarray(dist, dtype=np.float16)
 
     def transform(self) -> np.ndarray:
         nbs = self._find_neighbours()
         clusters = -1 * np.ones(shape=self.x_size, dtype=np.int32)
-        core = np.asarray([i for i in range(self.x_size)
-                           if np.sum(nbs[i]) >= self.min_pts]
-                          , dtype=np.int32)
+        core = np.asarray([i for i in range(self.x_size) if np.count_nonzero(nbs[i]) >= self.min_pts], dtype=np.int32)
         id = 1
-        print(core[clusters[core] < 0])
         while np.any(clusters[core] < 0):
             q = deque()
             node = np.random.choice(core[clusters[core] < 0])
@@ -37,10 +34,10 @@ class DBScan:
             while len(q) > 0:
                 pt = q.popleft()
                 clusters[pt] = id
-                for i in np.argwhere(nbs[pt]):
+                neighbors = np.argwhere(nbs[pt])
+                for i in neighbors:
                     if clusters[i] == -1 and np.sum(nbs[i]) >= self.min_pts:
                         q.append(i)
                     clusters[i] = id
-
             id += 1
         return clusters
