@@ -1,5 +1,5 @@
 # ml-algos-from-scratch
-### Implementing ML algorithms straight outta the oven with home-grown ingredients. 
+### Implementing ML algorithms from scratch
 
 While writing `import sklearn.some_xyz_model as xyz` and `xyz.fit()` is a cake walk for many so called 'data scientists', I challenged myself to fully understand and write popular ML algorithms from scratch.
 
