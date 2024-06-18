@@ -10,12 +10,12 @@ class DBScan:
         self.min_pts = min_pts
         self.metric = metric
 
-    def fit(self, x_train: np.ndarray):
-        self.x_train = x_train
-        self.x_size = self.x_train.shape[0]
+    def fit(self, data: np.ndarray):
+        self.data = data
+        self.x_size = self.data.shape[0]
 
     def _find_neighbours(self) -> np.ndarray:
-        dist = cdist(self.x_train, self.x_train, metric=self.metric)
+        dist = cdist(self.data, self.data, metric=self.metric)
         dist /= np.max(dist)
         dist[dist >= self.epsilon] = 0
         np.fill_diagonal(dist, val=1)
