@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 
+# Hierarchical Clustering with Minimum Linkage
 class HierarchicalClustering:
     def __init__(self, metric="euclidean"):
         self.metric = metric
@@ -14,18 +15,14 @@ class HierarchicalClustering:
         return self._cluster()
 
     def _cluster(self) -> (np.ndarray, np.ndarray):
-        # pairwise-distance
-        dist_mat = cdist(self.data, self.data)
+        # pairwise-distance normalized
+        dist_mat = cdist(self.data, self.data, metric=self.metric)
+        np.fill_diagonal(dist_mat, val=np.inf)
         row_ids = np.arange(self.size, dtype=np.uintp)[:, np.newaxis]
         hierarchy = np.tile(row_ids, (1, self.size))
         clusters = np.arange(self.size, dtype=np.uintp)
         for i in range(dist_mat.shape[0] - 1):
-            # upper triangle with diagonal offset k=1
-            upper_tri = np.triu_indices(dist_mat.shape[0], k=1)
-            # print(upper_tri)
-            min_val = np.min(dist_mat[upper_tri])
-            row, col = np.where(dist_mat == min_val)[0]
-
+            row, col = np.unravel_index(np.argmin(dist_mat, axis=None), dist_mat.shape)
             clusters[clusters == col] = row
             clusters[clusters > col] -= 1
 
@@ -37,8 +34,9 @@ class HierarchicalClustering:
             for j in range(dist_mat.shape[0]):
                 A, B = self.data[clusters == row], self.data[clusters == j]
                 dist_mat[row, j] = np.min(cdist(B, A, metric=self.metric))
+                np.fill_diagonal(dist_mat, val=np.inf)
                 dist_mat[j, row] = dist_mat[row, j]
             hierarchy[i] = clusters
 
         hierarchy[-1] = 0
-        return clusters, hierarchy
+        return hierarchy
